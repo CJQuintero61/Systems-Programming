@@ -6,7 +6,7 @@
 # This program is a makefile for compiling all programs given in the assignment.
 
 # target to run the executable COSC4348
-# and build if needed
+# will fail if the executable has not been built yet
 RunCOSC4348:
 	./exec/COSC4348 
 
@@ -22,7 +22,6 @@ COSC4348:
 # target to clean up the object files and executable
 CleanCOSC4348:
 	rm -f ./cpp1/main.o ./cpps/class.o ./exec/COSC4348
-
 
 
 
