@@ -1,0 +1,21 @@
+# Christian Quintero
+# COSC-4348 Systems Programming
+# Assignment 1 part 1 - Makefiles
+# 01/28/2026
+#
+# This part of the assignment asks us to read segfault.cpp and 
+# determine why the code throws a segmentation fault.
+
+
+Explain why segfault.cpp causes a segmentation fault.
+
+A segmentatin fault occurrs with the b pointer because
+
+	int* b;
+	setint(b, 10);
+    
+these lines define a pointer to an integer called b.
+The b pointer is uninitialized and therefore points to a random address.
+This then calls the function which assigns the random address that b points to 
+and assigns 10 to it. This can cause a segmentation fault because we are trying to assign
+a value to some random address.
