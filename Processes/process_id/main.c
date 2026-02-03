@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 int main() {
-    printf("My process ID is: %d\n", (long)(getpid()));
-    printf("My parent process ID is: %d\n", (long)(getppid()));
+    printf("My process ID is: %ld\n", (long)(getpid()));
+    printf("My parent process ID is: %ld\n", (long)(getppid()));
     
     return 0;
 }
