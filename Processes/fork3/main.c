@@ -24,6 +24,10 @@ int main(int argc, char* argv[]) {
             printf("Error calling fork");
             return 1;
         }
+        else if(child_process == 0) {
+            break; // prevent child processes from making more processes
+        }
+
         
         printf("Process ID: %d. Parent ID: %d. Child ID: %d\n", getpid(), getppid(), child_process);
     }
