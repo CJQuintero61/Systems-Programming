@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     printf("Creating %d processes:\n", number_of_processes);
 
-    /* create the processes and store their ids*/
+    /* create the processes and store their ids */
     for (int i = 0; i < number_of_processes; i++)
     {
         child_process = fork();
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         {
             /* child process block */
             
-            /* create an output file for this specific child process*/
+            /* create an output file for this specific child process */
             create_file();
 
             exit(EXIT_SUCCESS);
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
         process_ids[i] = child_process;
     }
 
-    /* make the parent process wait on all child processes*/
+    /* make the parent process wait on all child processes */
     for (int i = 0; i < number_of_processes; i++)
     {
         wait_status = waitpid(process_ids[i], &child_return_status, 0);
