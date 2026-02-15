@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     int wait_status = -1;                       /* wait status for the parent */
     int status = -1;                            /* the status for the child process */
     int exit_code = -1;                         /* the exit code for a child process */
-    pid_t child_process = -1;
+    pid_t child_pid = -1;
     pid_t process_ids[number_of_processes];     /* array to hold all child process ids */
 
     printf("Creating %d processes:\n", number_of_processes);
@@ -40,13 +40,13 @@ int main(int argc, char** argv)
     /* create the processes and store their ids */
     for (int i = 0; i < number_of_processes; i++)
     {
-        child_process = fork();
-        if (child_process == -1)
+        child_pid = fork();
+        if (child_pid == -1)
         {
             fprintf(stderr, "Fork failed: there was an error calling fork()\n");
             exit(EXIT_FAILURE);
         }
-        else if (child_process == 0)
+        else if (child_pid == 0)
         {
             /* child process block */
             
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
             exit(EXIT_SUCCESS);
         }
 
-        process_ids[i] = child_process;
+        process_ids[i] = child_pid;
     }
 
     /* make the parent process wait on all child processes */
