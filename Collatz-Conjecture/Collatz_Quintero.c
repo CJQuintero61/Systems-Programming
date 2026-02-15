@@ -156,9 +156,13 @@ void create_file()
 
     if (fildes == -1)
     {
-        fprintf(stderr, "File error: There was an error creating or opening the file %s\n", filename);
+        fprintf(stderr, "File error: there was an error creating or opening the file %s\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    close(fildes);
+    if(close(fildes) == -1)
+    {
+        fprintf(stderr, "File error: there was an error closing the file %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
 }
