@@ -29,8 +29,9 @@ int main(int argc, char** argv)
     validate_arguments(argc, argv);
 
     int number_of_processes = atoi(argv[1]);
-    int wait_status = -1;
-    int child_return_status = -1;
+    int wait_status = -1;                       /* wait status for the parent */
+    int status = -1;                            /* the status for the child process */
+    int exit_code = -1;                         /* the exit code for a child process */
     pid_t child_process = -1;
     pid_t process_ids[number_of_processes];     /* array to hold all child process ids */
 
@@ -61,16 +62,22 @@ int main(int argc, char** argv)
     /* make the parent process wait on all child processes */
     for (int i = 0; i < number_of_processes; i++)
     {
-        wait_status = waitpid(process_ids[i], &child_return_status, 0);
+        wait_status = waitpid(process_ids[i], &status, 0);
         if (wait_status == -1)
         {
             fprintf(stderr, "Wait failed: the call to waitpid() failed\n");
             exit(EXIT_FAILURE);
         }
 
-        if (!WIFEXITED(child_return_status))
+        /* check that the child exited normally and that it exited with return code 0*/
+        if (WIFEXITED(status))
         {
-            fprintf(stderr, "Process failed: the child process for id: %d did not exit successfully\n", process_ids[i]);
+            exit_code = WEXITSTATUS(status);
+            printf("Process %d completed with exit code %d\n", process_ids[i], exit_code);
+        }
+        else
+        {
+            fprintf(stderr, "Process failed: the child process for id: %d did not exit normally\n", process_ids[i]);
             exit(EXIT_FAILURE);
         }
     }
