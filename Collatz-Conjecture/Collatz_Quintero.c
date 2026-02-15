@@ -92,8 +92,8 @@ int main(int argc, char** argv)
  * 
  * argv[0] - program name
  * argv[1] - the number of child processes to make (aka the number of fork calls)
- * argv[2] - the lower bound for the range of numbers to choose from
- * argv[3] - the upper bound for the range of numbers to choose from
+ * argv[2] - the lower bound for the range of numbers
+ * argv[3] - the upper bound for the range of numbers
  */
 void validate_arguments(int argc, char** argv)
 {
