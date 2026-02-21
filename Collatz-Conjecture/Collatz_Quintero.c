@@ -20,13 +20,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-void validate_arguments(int argc, char** argv);
-void create_file();
+int validate_arguments(int argc, char** argv);
+int create_file();
 
 
 int main(int argc, char** argv)
 {
-    validate_arguments(argc, argv);
+    /* validate all args */
+    if (validate_arguments(argc, argv) != EXIT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
     int number_of_processes = atoi(argv[1]);
     int wait_status = -1;                       /* wait status for the parent */
@@ -44,16 +48,19 @@ int main(int argc, char** argv)
         if (child_pid == -1)
         {
             fprintf(stderr, "Fork failed: there was an error calling fork()\n");
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
         else if (child_pid == 0)
         {
             /* child process block */
             
             /* create an output file for this specific child process */
-            create_file();
+            if (create_file() != 0)
+            {
+                return EXIT_FAILURE;
+            }
 
-            exit(EXIT_SUCCESS);
+            return EXIT_SUCCESS;
         }
 
         process_ids[i] = child_pid;
@@ -66,7 +73,7 @@ int main(int argc, char** argv)
         if (wait_status == -1)
         {
             fprintf(stderr, "Wait failed: the call to waitpid() failed\n");
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
 
         /* check that the child exited normally and that it exited with return code 0*/
@@ -78,10 +85,9 @@ int main(int argc, char** argv)
         else
         {
             fprintf(stderr, "Process failed: the child process for id: %d did not exit normally\n", process_ids[i]);
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
     }
-
 
     return EXIT_SUCCESS;
 }
@@ -90,12 +96,15 @@ int main(int argc, char** argv)
  * validate the correct number of arguments were entered and check the range
  * on the number of processes to make
  * 
+ * returns: int - EXIT_SUCESS (0) if all arguments are valid
+ *                EXIT_FAILURE (1) if any of the arguments are invalid
+ * 
  * argv[0] - program name
  * argv[1] - the number of child processes to make (aka the number of fork calls)
  * argv[2] - the lower bound for the range of numbers
  * argv[3] - the upper bound for the range of numbers
  */
-void validate_arguments(int argc, char** argv)
+int validate_arguments(int argc, char** argv)
 {
     int expected_argc = 4;      /* there must be exactly 4 args          */
     int min_processes = 1;      /* at least 1 child process must be made */
@@ -105,7 +114,7 @@ void validate_arguments(int argc, char** argv)
     if (argc != expected_argc)
     {
         fprintf(stderr, "Invalid argument count: expected 4 arguments, got %d\n", argc);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
     
     /* convert args to ints */
@@ -118,21 +127,24 @@ void validate_arguments(int argc, char** argv)
     {
         fprintf(stderr, "Invalid argument: number of child processes to make must be between %d-%d, got %d\n",
             min_processes, max_processes, number_of_processes);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     /* validate the bounds */
     if (lower_bound <= 0)
     {
         fprintf(stderr, "Invalid argument: lower bound must be at least 1, got %d\n", lower_bound);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     if (!(upper_bound > lower_bound))
     {
         fprintf(stderr, "Invalid argument: upper bound must be greater than lower bound\nupper bound: %d, lower bound: %d\n", upper_bound, lower_bound);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
+
+    /* all args are valid */
+    return EXIT_SUCCESS;
 }
 
 /**
@@ -140,8 +152,10 @@ void validate_arguments(int argc, char** argv)
  * own file to write their output to. The number of files made
  * will be equal to the number of child processes made.
  * Ex) 10 processes made will make 10 output files
+ * 
+ * returns int - EXIT_SUCCESS (0) if there are no erorrs, else EXIT_FAILURE (1)
  */
-void create_file()
+int create_file()
 {
     /* format the output file name using snprintf to format properly */
     char filename[256];
@@ -164,12 +178,15 @@ void create_file()
     if (fildes == -1)
     {
         fprintf(stderr, "File error: there was an error creating or opening the file %s\n", filename);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     if(close(fildes) == -1)
     {
         fprintf(stderr, "File error: there was an error closing the file %s\n", filename);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
+
+    /* return 0 if there were no errors */
+    return EXIT_SUCCESS;
 }
