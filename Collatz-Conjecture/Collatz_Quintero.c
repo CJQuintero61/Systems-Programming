@@ -10,7 +10,7 @@
  * To run:
  * 1. make Collatz_Quintero
  * 2. ./Collatz_Quintero <num processes> <lower bound> <upper bound>
- * Ex) ./Collatz_Quintero 5 10 100
+ * Ex) ./Collatz_Quintero 10 1 50
  * 3. make clean
  */
 #include <stdlib.h>
