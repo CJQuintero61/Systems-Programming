@@ -259,7 +259,7 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
     else
     {
         /* no errors creating, opening, writing, or closing the files */
-        printf("I am child PID %d and I computed the sequence for numbers %d to %d\n", getpid(), start, end);
+        printf("I am child PID %d. My parent's PID is %d. I computed the sequence for numbers %d to %d\n", getpid(), getppid(), start, end);
         return EXIT_SUCCESS;
     }
 }
@@ -320,9 +320,45 @@ int calc_two_thirds_range(int total_range)
     }
 }
 
+/**
+ * the parent process runs this to wait on all children
+ *  
+ * param pids: pid_t - an array of all child pids
+ * param process_count: int - the number of processes that were made
+ * 
+ * returns int - 0 on success, else 1 on any errors
+ */
 int run_parent_process(pid_t pids[], int process_count)
 {
+    int return_code = -1;
+    int status = -1;
+    int return_codes [process_count];
 
+    /* wait for all child processes to exit */
+    for (int i = 0; i < process_count; i++)
+    {
+        if (waitpid(pids[i], &status, 0) == -1)
+        {
+            fprintf(stderr, "Wait error: there was a problem waiting on process %d", pids[i]);
+            return EXIT_FAILURE;
+        }
+
+        /* get the actual return code for this child */
+        return_code = WEXITSTATUS(status);
+        return_codes[i] = return_code;
+    }
+    
+    printf("\nProcess exiting...\n");
+
+    /**
+     * after all children exit, print their return codes by the parent.
+     * This is done so that the outputs are formatted better
+     */
+    for (int i = 0; i < process_count; i++)
+    {
+        printf("Child process PID %d exited with return code %d\n", pids[i], return_code);
+    }
+    return EXIT_SUCCESS;
 }
 
 /**
