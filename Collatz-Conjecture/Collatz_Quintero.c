@@ -21,12 +21,12 @@
 #include <fcntl.h>
 
 int validate_arguments(int argc, char** argv);
-int create_file();
+int create_file(int start, int end);
 int run_child_processes(int my_index, int process_count, int range_start, int range_end);
 int calc_process_index(int process_count);
 int calc_two_thirds_range(int total_range);
 int run_parent_process(pid_t pids[], int process_count);
-void compute_sequence();
+int write_to_file(int fildes, int start, int end);
 
 
 int main(int argc, char** argv)
@@ -69,6 +69,7 @@ int main(int argc, char** argv)
             }
             else
             {
+                /* no errors running any child processes */
                 return EXIT_SUCCESS;
             }
         }
@@ -152,9 +153,12 @@ int validate_arguments(int argc, char** argv)
  * will be equal to the number of child processes made.
  * Ex) 10 processes made will make 10 output files
  * 
+ * param start: int - the first number of the range to compute for a specific process
+ * param end: int - the last number of the range to compute
+ * 
  * returns int - EXIT_SUCCESS (0) if there are no erorrs, else EXIT_FAILURE (1)
  */
-int create_file()
+int create_file(int start, int end)
 {
     /* format the output file name using snprintf to format properly */
     char filename[256];
@@ -178,6 +182,12 @@ int create_file()
     {
         fprintf(stderr, "File error: there was an error creating or opening the file %s\n", filename);
         return EXIT_FAILURE;
+    }
+
+    /* write to the file */
+    if (write_to_file(fildes, start, end) != 0)
+    {
+        fprintf(stderr, "File error: there was an error writing to the file %s\n", filename);
     }
 
     if(close(fildes) == -1)
@@ -230,7 +240,6 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
         first_block = two_thirds / (first_half_index + 1);                  /* number of sequences per process */
         start = range_start + (my_index * first_block);                     /* first number of sequence */
         end = start + first_block - 1;                                      /* last number of sequence */
-        printf("I will compute %d to %d\n", start, end);
     }
     /* for children that will compute the last 1/3rd of sequences */
     else
@@ -239,12 +248,10 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
         second_block = one_third / second_half_count;                       /* the number of sequences per process */
         start = range_start + two_thirds + (local_index * second_block);    /* starting value of sequence */
         end   = start + second_block - 1;                                   /* last value of sequence */
-
-        printf("I will compute %d to %d\n", start, end);
     }
 
     /* all children create their own output file and compute their own sequences */
-    if (create_file() != 0)
+    if (create_file(start, end) != 0)
     {
         /* catch any failures to create, open, write, and close the files */
         return EXIT_FAILURE;
@@ -252,10 +259,9 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
     else
     {
         /* no errors creating, opening, writing, or closing the files */
-        //printf("I am child %d and I am computing the sequence for %d to %d\n", getpid(), start, end);
+        printf("I am child PID %d and I computed the sequence for numbers %d to %d\n", getpid(), start, end);
         return EXIT_SUCCESS;
     }
-
 }
 
 /**
@@ -317,4 +323,62 @@ int calc_two_thirds_range(int total_range)
 int run_parent_process(pid_t pids[], int process_count)
 {
 
+}
+
+/**
+ * Actually compute the sequence and write it to the passed file descriptor
+ * for a specific process.
+ * 
+ * param fildes: int - the file descriptor for what file to write to
+ * param start: int - the first number to compute
+ * param end: int - the last number to compute
+ * 
+ * returns int - 0 on success, 1 on any errors
+ */
+int write_to_file(int fildes, int start, int end)
+{
+    /* to hold the current number as it changes */
+    int num = -1;
+    int size = 256;
+    char msg[size]; 
+    int len = -1;
+
+    for (start; start <= end; start++)
+    {
+        num = start;
+        len = snprintf(msg, sizeof(msg), "%d ", num);
+        if (write(fildes, msg, len) == -1)
+        {
+            fprintf(stderr, "Write error: there was a problem writing to the file for process %d\n", getpid());
+        }
+
+        while (num != 1)
+        {
+            if (num % 2 == 0)
+            {
+                num = num / 2;
+            }
+            else
+            {
+                num = (3 * num) + 1;
+            }
+
+            /* format the message using snprintf */
+            len = snprintf(msg, sizeof(msg), "%d ", num);
+
+            /* write the sequence to the file */
+            if (write(fildes, msg, len) == -1)
+            {
+                fprintf(stderr, "Write error: there was a problem writing to the file for process %d\n", getpid());
+            }
+        }
+
+        /* write each new sequence on a different line */
+        if (write(fildes, "\n", 1) == -1)
+        {
+            fprintf(stderr, "Write error: there was a problem writing to the file for process %d\n", getpid());
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
