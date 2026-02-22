@@ -222,6 +222,7 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
     int one_third = total_range - two_thirds;                   /* the last 1/3rd of values in the range */
     int first_half_count = first_half_index + 1;                /* the actual number of processes in the first half */
     int second_half_count = process_count - first_half_count;   /* the actual number of processes in the second half */
+    int remainder = -1;                                          /* the remainder of processes that weren't divided evenly */
 
     /* to track the first and last value of the range of sequences a process will compute */
     int start = -1;
@@ -240,6 +241,16 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
         first_block = two_thirds / (first_half_index + 1);                  /* number of sequences per process */
         start = range_start + (my_index * first_block);                     /* first number of sequence */
         end = start + first_block - 1;                                      /* last number of sequence */
+
+        /**
+         * due to a bug with dividing sequences up evenly with processes
+         * the last process in each block catches any left over processes
+         */
+        if (my_index == first_half_index)
+        {
+            remainder = two_thirds % (first_half_index + 1);
+            end = end + remainder;
+        }
     }
     /* for children that will compute the last 1/3rd of sequences */
     else
@@ -248,6 +259,16 @@ int run_child_processes(int my_index, int process_count, int range_start, int ra
         second_block = one_third / second_half_count;                       /* the number of sequences per process */
         start = range_start + two_thirds + (local_index * second_block);    /* starting value of sequence */
         end   = start + second_block - 1;                                   /* last value of sequence */
+
+        /**
+         * due to a bug with dividing sequences up evenly with processes
+         * the last process in each block catches any left over processes
+         */
+        if (my_index == process_count - 1)
+        {
+            remainder = one_third % second_half_count;
+            end = end + remainder;
+        }
     }
 
     /* all children create their own output file and compute their own sequences */
@@ -333,6 +354,11 @@ int run_parent_process(pid_t pids[], int process_count)
     int return_code = -1;
     int status = -1;
     int return_codes [process_count];
+    size_t size = 512;
+    char file[size];
+    int fildes = -1;
+    int bytes_read = -1;
+    char buffer[size];
 
     /* wait for all child processes to exit */
     for (int i = 0; i < process_count; i++)
@@ -347,7 +373,7 @@ int run_parent_process(pid_t pids[], int process_count)
         return_code = WEXITSTATUS(status);
         return_codes[i] = return_code;
     }
-    
+
     printf("\nProcess exiting...\n");
 
     /**
@@ -357,6 +383,41 @@ int run_parent_process(pid_t pids[], int process_count)
     for (int i = 0; i < process_count; i++)
     {
         printf("Child process PID %d exited with return code %d\n", pids[i], return_code);
+    }
+
+    printf("\n");
+
+    /* read all output */
+    for (int i = 0; i < process_count; i++)
+    {
+        snprintf(file, sizeof(file), "results_%d_%d.dat", pids[i], getpid());
+        fildes = open(file, O_RDONLY);
+
+        if (fildes == -1)
+        {
+            fprintf(stderr, "Read error: there was an error opening the file %s\n", file);
+            return EXIT_FAILURE;
+        }
+
+        while ((bytes_read = read(fildes, buffer, sizeof(buffer) - 1)) > 0)
+        {
+            buffer[bytes_read] = '\0'; /* null terminate the string */
+            printf("%s", buffer);
+        }
+
+        if (bytes_read == 1)
+        {
+            fprintf(stderr, "Read error: There was an error reading the file %s\n", file);
+            return EXIT_FAILURE;
+        }
+
+        if (close(fildes) == -1)
+        {
+            fprintf(stderr, "Read error: there was an error closing the file %s\n", file);
+            return EXIT_FAILURE;
+        }
+
+        printf("\n");
     }
     return EXIT_SUCCESS;
 }
