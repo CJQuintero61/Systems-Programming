@@ -414,5 +414,53 @@ void copy_file(const char *src_file, const char *dst_file, mode_t permissions)
         permissions: mode_t - the permissions of the original file
     */
 
-    int fd;
+    int src_fd, dst_fd;
+    ssize_t bytes_read, bytes_written;
+    char buf[BUFFER_SIZE];
+
+    // open source file for reading
+    if ((src_fd = open(src_file, O_RDONLY)) == -1)
+    {
+        perror("open");
+        exit(1);
+    }
+
+    // open destination file for writing
+    if ((dst_fd = open(dst_file, O_WRONLY | O_CREAT | O_TRUNC, permissions)) == -1)
+    {
+        perror("open");
+        exit(1);
+    }
+
+    // continue reading from source
+    while ((bytes_read = read(src_fd, buf, BUFFER_SIZE)) > 0)
+    {   
+        // write to destiantion
+        bytes_written = write(dst_fd, buf, bytes_read);
+        if (bytes_written == -1)
+        {
+            perror("write");
+            exit(1);
+        }
+    }
+
+    // check if read failed
+    if (bytes_read == -1)
+    {
+        perror("read");
+        exit(1);
+    }
+
+    // close both file descriptors
+    if (close(src_fd) == -1)
+    {
+        perror("close");
+        exit(1);
+    }
+
+    if (close(dst_fd) == -1)
+    {
+        perror("close");
+        exit(1);
+    }
 }

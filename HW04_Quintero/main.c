@@ -6,6 +6,7 @@
     to run:
         1. make main
         2. ./main <source_directory> <destination_directory>
+            ex) ./main ./ ./output/
         3. make clean
 
     NOTES::
