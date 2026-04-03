@@ -24,26 +24,15 @@
 
 int main(int argc, char* argv[])
 {
+    validate_args(argc, argv);
+
     char *source_dir = argv[1];
     char *dest_dir = argv[2];
     long file_sizes[MAX_FILE_COUNT] = {0};
     long median = 0;
     int file_count = 0;
-    int process_idx = -1;
 
-    validate_args(argc, argv);
     get_file_sizes(source_dir, file_sizes, &file_count);
     median = calc_median(file_sizes, file_count);
-    process_idx = create_child_processes();
-
-    if (process_idx == 0 || process_idx == 1)
-    {
-        run_child(source_dir, dest_dir, median, process_idx);
-    }
-    else
-    {
-        run_parent();
-    }
-
     return 0;
 }

@@ -11,8 +11,6 @@
 /*
     CHILDREN: 2 - the number of child processes to make
 
-    MAX_PATH: 512 - the max length a directory path string can be
-
     MAX_FILE_COUNT: 100 - to simplify this assignment, I decided to define this
         instead of passing through the directory more times than I already do
         and allocating an array for the number of files. Unknown behavior might
@@ -24,17 +22,12 @@
     BUFFER_SIZE: 4096 - the size of the buffer when performing the copy operation
 */
 #define CHILDREN 2
-#define MAX_PATH 1024
 #define MAX_FILE_COUNT 100
 #define PARENT_FLAG 5
 #define BUFFER_SIZE 4096
 
 void validate_args(int argc, char *argv[]);
-void get_file_sizes(const char *path, long file_sizes[], int *idx);
+void get_file_sizes(const char *path, long file_sizes[], int *file_count);
 int compare(const void *a, const void *b);
 long calc_median(long file_sizes[], int file_count);
-int create_child_processes();
-void run_parent();
-void run_child(const char *source, const char *dest, long median, int child_idx);
-void copy_file(const char *src, const char *dst);
-void print_file_sizes(const long file_sizes[], int file_count);
+
