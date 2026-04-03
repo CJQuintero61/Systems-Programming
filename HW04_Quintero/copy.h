@@ -30,4 +30,8 @@ void validate_args(int argc, char *argv[]);
 void get_file_sizes(const char *path, long file_sizes[], int *file_count);
 int compare(const void *a, const void *b);
 long calc_median(long file_sizes[], int file_count);
+void create_dest_dir(const char *src_dir, const char *dst_dir);
+int create_child_processes();
+void run_parent();
+void run_child(const char *src_dir, const char *dst_dir, long median, int process_idx);
 

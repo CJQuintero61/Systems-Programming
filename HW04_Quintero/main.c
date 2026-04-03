@@ -31,8 +31,22 @@ int main(int argc, char* argv[])
     long file_sizes[MAX_FILE_COUNT] = {0};
     long median = 0;
     int file_count = 0;
+    int process_idx = 0;
 
     get_file_sizes(source_dir, file_sizes, &file_count);
     median = calc_median(file_sizes, file_count);
+    create_dest_dir(source_dir, dest_dir);
+    process_idx = create_child_processes();
+
+    if (process_idx == 0 || process_idx == 1)
+    {
+        // child block
+        run_child(source_dir, dest_dir, median, process_idx);
+    }
+    else
+    {
+        // parent block
+        run_parent();
+    }
     return 0;
 }

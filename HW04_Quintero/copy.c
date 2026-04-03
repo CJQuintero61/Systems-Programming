@@ -129,7 +129,7 @@ void get_file_sizes(const char *path, long file_sizes[], int *file_count)
                 exit(1);
             }
         }
-    }
+    } // end while
 
     // the man pages say to set errno to 0 and check it later
     // to see if readdir failed. If this runs, then readdir failed
@@ -217,4 +217,100 @@ long calc_median(long file_sizes[], int file_count)
     }
 
     return median;
+}
+
+void create_dest_dir(const char *src_path, const char *dst_path)
+{
+    /*
+        this function creates the destination directory if it
+        does not already exist
+
+        :params:
+        src_path: const char * - the source directory path, used to get permissions
+        dst_path: const char * - the destination directory path
+    */
+    struct stat statbuf;
+
+    // get the stat struct of the source path to copy permissions
+    // to the destination path
+    if (stat(src_path, &statbuf) == -1)
+    {
+        perror("stat");
+        exit(1);
+    }
+
+    if (mkdir(dst_path, statbuf.st_mode) == -1)
+    {
+        // if the destination directory already exists, just ignore the error
+        if (errno == EEXIST)
+        {
+            return;
+        }
+        // else, catch other mkdir errors
+        perror("mkdir");
+        exit(1);
+    }
+}
+
+int create_child_processes()
+{
+    /*
+        this function creates the 2 child processes.
+
+        :returns:
+        int - a flag value used to identify processes
+            0 - the process index of first child
+            1 - the process index of the second child
+            PARENT_FLAG - the process index of the parent
+    */
+    pid_t child_pid;
+
+    for (int i = 0; i < CHILDREN; i++)
+    {
+        if ((child_pid = fork()) == -1)
+        {
+            perror("fork");
+            exit(1);
+        }
+        else if (child_pid == 0)
+        {
+            // child block
+            return i;
+        }
+        else
+        {
+            // parent block
+        }
+    }
+    return PARENT_FLAG;
+}
+
+void run_parent()
+{
+    /*
+        this function is called by the parent where it simply
+        waits for the children to terminte
+    */
+
+    // wait for both children in no particular order
+    for (int i = 0; i < CHILDREN; i++)
+    {
+        wait(NULL);
+    }
+}
+
+void run_child(const char *src_dir, const char *dst_dir, long median, int process_idx)
+{
+    /*
+        this function is ran by child processes to read entries from a
+        directory to then call the copy_file function
+
+        :params:
+        src_dir: const char * - the source directory path
+        dst_dir: const char * - the destintion directory path
+        median: long - the median file size of the source directory
+        process_idx: int - the process index to identify each process. It is either 0 or 1.
+    */
+    
+    printf("My process idx is %d\n", process_idx);
 }
