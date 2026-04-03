@@ -7,6 +7,7 @@
     Header file for copy.c
 */
 #include <unistd.h>
+#include <sys/stat.h>
 
 /*
     CHILDREN: 2 - the number of child processes to make
@@ -34,4 +35,5 @@ void create_dest_dir(const char *src_dir, const char *dst_dir);
 int create_child_processes();
 void run_parent();
 void run_child(const char *src_dir, const char *dst_dir, long median, int process_idx);
+void copy_file(const char *src_file, const char *dst_file, mode_t permissions);
 

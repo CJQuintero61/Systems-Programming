@@ -305,12 +305,114 @@ void run_child(const char *src_dir, const char *dst_dir, long median, int proces
         this function is ran by child processes to read entries from a
         directory to then call the copy_file function
 
+        This code is similar to what the parent runs to get the files sizes.
+
         :params:
         src_dir: const char * - the source directory path
         dst_dir: const char * - the destintion directory path
         median: long - the median file size of the source directory
         process_idx: int - the process index to identify each process. It is either 0 or 1.
     */
-    
-    printf("My process idx is %d\n", process_idx);
+    DIR *dirp;
+    struct dirent *direntp;
+    struct stat statbuf;
+    char full_src_path[PATH_MAX];
+    char full_dst_path[PATH_MAX];
+    int retval;
+    errno = 0;
+
+    if ((dirp = opendir(src_dir)) == NULL)
+    {
+        perror("opendir");
+        exit(1);
+    }
+
+    while((direntp = readdir(dirp)) != NULL)
+    {
+        // skip over current and root directories
+        if (strcmp(direntp->d_name, ".") == 0 || strcmp(direntp->d_name, "..") == 0)
+        {
+            continue;
+        }
+
+        // create the full source file path
+        retval = snprintf(full_src_path, sizeof(full_src_path), "%s/%s", src_dir, direntp->d_name);
+        if (retval < 0 || retval >= sizeof(full_src_path))
+        {
+            perror("snprintf");
+            exit(1);
+        }
+
+        // create the full destination file path
+        retval = snprintf(full_dst_path, sizeof(full_dst_path), "%s/%s", dst_dir, direntp->d_name);
+        if (retval < 0 || retval >= sizeof(full_dst_path))
+        {
+            perror("snprintf");
+            exit(1);
+        }
+
+        // after making the full path, we can get the stat structure for a file entry
+        retval = stat(full_src_path, &statbuf);
+        if (retval == -1)
+        {
+            perror("stat");
+            exit(1);
+        }
+
+        // for regular files
+        if (S_ISREG(statbuf.st_mode))
+        {
+            // assign the first child to copy files less than the median
+            if (process_idx == 0 && statbuf.st_size < median)
+            {
+                copy_file(full_src_path, full_dst_path, statbuf.st_mode);
+            }
+            // assign the second child to copy files greater than or equal to the median
+            else if (process_idx == 1 && statbuf.st_size >= median)
+            {
+                copy_file(full_src_path, full_dst_path, statbuf.st_mode);
+            }
+            // if a process finds a file, and it's not in its half, just continue
+            // parsing the directory
+            else
+            {
+                continue;
+            }
+        }
+    } // end while
+
+    // setting errno to 0 before calling readdir is a way
+    // to check if readdir failed
+    if (errno != 0)
+    {
+        // close (and catch closedir errors) after readdir failing
+        if (closedir(dirp) == -1)
+        {
+            perror("closedir");
+            exit(1);
+        }
+        perror("readdir");
+        exit(1);
+    }
+
+    if (closedir(dirp) == -1)
+    {
+        perror("closedir");
+        exit(1);
+    }
+}
+
+void copy_file(const char *src_file, const char *dst_file, mode_t permissions)
+{
+    /*
+        this function copies a file from the source file path
+        to the destination file path.
+
+        :params:
+        src_file: const char * - the fully complete source file path such as "./folder/textfile.txt"
+        dst_file: const char * - the fully complete destination file path such as the example above
+        permissions: mode_t - the permissions of the original file
+    */
+
+    int fd;
 }
