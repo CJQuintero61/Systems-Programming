@@ -388,13 +388,8 @@ void run_child(const char *src_dir, const char *dst_dir, long median, int proces
         else if (S_ISDIR(statbuf.st_mode))
         {
             // create the destination subdirectory with source permissions
-            // Only allow 1 of the processes to crete subdirectories
-            // to prevent any errors. nested files are still
-            // split between the 2 processes properly
-            if (process_idx == 0)
-            {
-                create_dest_dir(full_src_path, full_dst_path);
-            }
+            create_dest_dir(full_src_path, full_dst_path);
+            
             // recurse into the subdirectory
             run_child(full_src_path, full_dst_path, median, process_idx);
         }

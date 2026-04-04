@@ -16,6 +16,9 @@
         This program uses the long type for file sizes. If file sizes are larger than
         ~2GB, unexpected problems may occur.
 
+        DO NOT use the cwd as the output destination, otherwise all of this code will
+        be deleted :)
+
     This program copies the contents of one directory to another directory using
     child processes.
 */
