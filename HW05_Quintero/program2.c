@@ -27,14 +27,11 @@
 
 int main()
 {
-    pid_t pid = getpid();
-    pid_t pids[2];          // array to hold the other pids
-
     // save program2 pid
-    save_pid(IDX, pid);
-    sleep(1);
+    save_pid(IDX, getpid());
 
     // read the pids from process 1 and 3
+    pid_t pids[2];
     pids[0] = read_pid(1);
     pids[1] = read_pid(3);
 
