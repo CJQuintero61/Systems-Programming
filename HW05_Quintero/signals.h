@@ -20,3 +20,5 @@
 
 void save_pid(int process_idx, pid_t pid);
 pid_t read_pid(int process_idx);
+void print_pid(int process_idx, pid_t pid);
+void print_read_pids(int process_idx, pid_t my_pid, pid_t pids[]);

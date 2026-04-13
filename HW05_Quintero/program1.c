@@ -24,12 +24,17 @@
 #include <stdlib.h>
 #include "signals.h"
 
+#define IDX 1   // program1 has a process index of 1
+
 int main()
 {
-    int process_idx = 1;    // program1 has a process index of 1
     pid_t pid = getpid();
+    pid_t pids[2];          // array to hold the other pids
 
-    save_pid(1, pid);
+    // save P1 pid and read P2 and P3
+    save_pid(IDX, pid);
+    pids[0] = read_pid(2);
+    pids[1] = read_pid(3);
 
     return EXIT_SUCCESS;
 }

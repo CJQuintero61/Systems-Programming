@@ -133,3 +133,25 @@ pid_t read_pid(int process_idx)
     // convert the string to a pid_t type
     return (pid_t) atoi(pid_buffer);
 }
+
+void print_pid(int process_idx, pid_t pid)
+{
+    /*
+        debug function to print a process'
+        index and their own pid
+
+        ex) Process index: 1 with PID: 736
+    */
+    printf("Process index: %d with PID: %d\n", process_idx, pid);
+}
+
+void print_read_pids(int process_idx, pid_t my_pid, pid_t pids[])
+{
+    /*
+        debug function to print the pids a process read
+
+        ex) Process index: 1 with PID: 736 and I read PIDs: 737 & 738
+    */
+    printf("Process index: %d with PID: %d and I read PIDs: %d & %d\n", 
+        process_idx, my_pid, pids[0], pids[1]);
+}
