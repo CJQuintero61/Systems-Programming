@@ -22,31 +22,41 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include "signals.h"
 
-#define IDX 1               // program1 has a process index of 1
 #define MAX_MESSAGE 256     // the maximum number of characters able to be stored in the message buffer
+pid_t pid2 = 0;
+pid_t pid3 = 0;
 
 void read_message(char msg[], int size);
-void send_message(pid_t pid, char msg[]);
+void send_message(char msg[]);
+void wait_for_signal(int sig);
 
 int main()
 {
     // save program1 pid
-    save_pid(IDX, getpid());
+    save_pid(1, getpid());
+
+    // register signal
+    signal(SIGUSR1, wait_for_signal);
 
     // read the pids from process 2 and 3
-    pid_t pids[2];
-    pids[0] = read_pid(2);
-    pids[1] = read_pid(3);
+    pid2 = read_pid(2);
+    pid3 = read_pid(3);
 
     // process1 reads the message file
     char msg[MAX_MESSAGE];
     read_message(msg, sizeof(msg));
 
-    // send the message
-    send_message(pids[0], msg);
+    // wait for p2 and p3 to signal they are ready
+    pause();
+    pause();
+
+    // send the message to pid2
+    send_message(msg);
 
     return EXIT_SUCCESS;
 }
@@ -60,7 +70,6 @@ void read_message(char msg[], int size)
         size: int - the size of the msg array
     */
     char* file = "message.txt";
-    char buf[MAX_MESSAGE];
     int fd;
     int len;
 
@@ -94,7 +103,47 @@ void read_message(char msg[], int size)
     }
 }
 
-void send_message(pid_t pid, char msg[])
+void send_message(char msg[])
 {
-    
+    /*
+        process 1 only sends messages to process 2
+
+        :params:
+        msg: char[] - the message of 0s and 1s in an array
+    */
+    int i = 0;
+    while (msg[i] != '\0')
+    {
+        if (msg[i] == '0')
+        {
+            // send a 0 to process 2
+            kill(pid2, SIGUSR1);
+
+            // wait for p3 to finish printing
+            pause();
+        }
+        else if (msg[i] == '1')
+        {
+            // send a 1 to process 2
+            kill(pid2, SIGUSR2);
+
+            // wait for p3 to finish printing
+            pause();
+        }
+
+        // skip spaces
+        i++;
+    }
+
+    // this
+    sleep(1);
+
+    // terminate process 2 and 3
+    kill(pid2, SIGTERM);
+    kill(pid3, SIGTERM);
+}
+
+void wait_for_signal(int sig)
+{
+    return;
 }

@@ -33,4 +33,4 @@ program3: program3.o signals.o
 	gcc program3.o signals.o -o program3
 
 .PHONY clean:
-	rm -f *.o program1 program2 program3 P*.txt
+	rm -f *.o program1 program2 program3 P*.txt output.txt

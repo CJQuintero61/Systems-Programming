@@ -21,19 +21,50 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
 #include "signals.h"
 
-#define IDX 2   // program2 has a process index of 2
+pid_t pid1 = 0;
+pid_t pid3 = 0;
+
+void forward_bit(int sig);
 
 int main()
 {
     // save program2 pid
-    save_pid(IDX, getpid());
+    save_pid(2, getpid());
+    sleep(1);
+    // register signals
+    signal(SIGUSR1, forward_bit);
+    signal(SIGUSR2, forward_bit);
 
     // read the pids from process 1 and 3
-    pid_t pids[2];
-    pids[0] = read_pid(1);
-    pids[1] = read_pid(3);
+    pid1 = read_pid(1);
+    pid3 = read_pid(3);
+
+    // tell p1 that p2 is ready to accept bits
+    kill(pid1, SIGUSR1);
+
+    // wait for signals or for process 1 to terminate process 2
+    while (1)
+    {
+        pause();
+    }
 
     return EXIT_SUCCESS;
+}
+
+void forward_bit(int sig)
+{
+    /*
+        this function is used to forward the signal/bit from
+        process 1 to process 3
+
+        :params:
+        sig: int - the signal from process 1. Either SIGUSR1 for a 0 or SIGUSR2 for a 1
+    */
+
+    // forward the signal to process 3
+    kill(pid3, sig);
 }
