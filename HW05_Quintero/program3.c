@@ -34,7 +34,10 @@ int main()
 {
     // save program3 pid
     save_pid(3, getpid());
+
+    // give time for the others to make their pid file
     sleep(1);
+
     // register signals
     signal(SIGUSR1, print_bit);
     signal(SIGUSR2, print_bit);
@@ -77,6 +80,7 @@ void print_bit(int sig)
     {
         printf("1");
     }
-
+    
+    // let p1 know p3 is done printing
     kill(pid1, SIGUSR1);
 }

@@ -34,7 +34,10 @@ int main()
 {
     // save program2 pid
     save_pid(2, getpid());
+
+    // give time for the others to make their pid file
     sleep(1);
+
     // register signals
     signal(SIGUSR1, forward_bit);
     signal(SIGUSR2, forward_bit);

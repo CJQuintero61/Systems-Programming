@@ -40,6 +40,9 @@ int main()
     // save program1 pid
     save_pid(1, getpid());
 
+    // give time for the others to make their pid file
+    sleep(1);
+
     // register signal
     signal(SIGUSR1, wait_for_signal);
 
@@ -52,7 +55,6 @@ int main()
     read_message(msg, sizeof(msg));
 
     // wait for p2 and p3 to signal they are ready
-    pause();
     pause();
 
     // send the message to pid2
@@ -135,15 +137,15 @@ void send_message(char msg[])
         i++;
     }
 
-    // this
     sleep(1);
 
     // terminate process 2 and 3
     kill(pid2, SIGTERM);
     kill(pid3, SIGTERM);
+
 }
 
 void wait_for_signal(int sig)
 {
-    return;
+    // do nothing
 }
