@@ -41,6 +41,7 @@ int main()
     // register signals
     signal(SIGUSR1, forward_bit);
     signal(SIGUSR2, forward_bit);
+    signal(SIGALRM, forward_bit);
 
     // read the pids from process 1 and 3
     pid1 = read_pid(1);
@@ -65,7 +66,7 @@ void forward_bit(int sig)
         process 1 to process 3
 
         :params:
-        sig: int - the signal from process 1. Either SIGUSR1 for a 0 or SIGUSR2 for a 1
+        sig: int - the signal from process 1.
     */
 
     // forward the signal to process 3

@@ -41,6 +41,7 @@ int main()
     // register signals
     signal(SIGUSR1, print_bit);
     signal(SIGUSR2, print_bit);
+    signal(SIGALRM, print_bit);
     
     // read the pids from process 1 and 2
     pid1 = read_pid(1);
@@ -64,6 +65,7 @@ void print_bit(int sig)
         prints a bit depending on the signal received (from process 2)
         0 for SIGUSR1
         1 for SIGUSR2
+        a space for SIGALRM
 
         :params:
         sig: int - the signal received
@@ -80,7 +82,11 @@ void print_bit(int sig)
     {
         printf("1");
     }
-    
+    else if (sig == SIGALRM)
+    {
+        printf(" ");
+    }
+
     // let p1 know p3 is done printing
     kill(pid1, SIGUSR1);
 }

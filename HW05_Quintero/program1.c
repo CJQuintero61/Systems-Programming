@@ -30,6 +30,7 @@
 #define MAX_MESSAGE 256     // the maximum number of characters able to be stored in the message buffer
 pid_t pid2 = 0;
 pid_t pid3 = 0;
+int ack_count = 0;
 
 void read_message(char msg[], int size);
 void send_message(char msg[]);
@@ -114,30 +115,46 @@ void send_message(char msg[])
         msg: char[] - the message of 0s and 1s in an array
     */
     int i = 0;
+    int bit_count = 0;
+
+    // reset the acknowledgement count before sending signals
+    ack_count = 0; 
+    
+    // parse the message
     while (msg[i] != '\0')
     {
+        // send a 0 to p2
         if (msg[i] == '0')
         {
-            // send a 0 to process 2
             kill(pid2, SIGUSR1);
-
-            // wait for p3 to finish printing
-            pause();
         }
+        // send a 1 to p2
         else if (msg[i] == '1')
         {
-            // send a 1 to process 2
             kill(pid2, SIGUSR2);
-
-            // wait for p3 to finish printing
-            pause();
+        }
+        // I used SIGALRM as the signal to send on spaces
+        else if (msg[i] == ' ')
+        {
+            kill(pid2, SIGALRM);
         }
 
-        // skip spaces
+        // increment bit count to ensure we pause the same number
+        // of times we send a signal
+        bit_count++;
+
+        // wait for acknowledgement from p3
+        pause();
+
         i++;
     }
 
-    sleep(1);
+    // wait for all acknowledgements before killing p2 and p3
+    while (ack_count < bit_count)
+    {
+        // keep waiting for remaining signals
+        pause();  
+    }
 
     // terminate process 2 and 3
     kill(pid2, SIGTERM);
@@ -147,5 +164,17 @@ void send_message(char msg[])
 
 void wait_for_signal(int sig)
 {
-    // do nothing
+    /*
+        this is the handler function for when p1 is signaled
+        with SIGUSR1
+
+        the ack_count is incremented everytime p1 is signaled to track
+        the amount of acknowledgements we received to compare with
+        the number of bits being sent
+
+        this needs to be reset before sending any bits because
+        the acknowledgements that p2 and p3 are ready will increment
+        this
+    */
+    ack_count++;
 }
