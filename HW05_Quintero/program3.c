@@ -71,9 +71,6 @@ void print_bit(int sig)
         sig: int - the signal received
     */
 
-    // im not sure why, but without flushing stdout here, the 0s and 1s just don't print
-    fflush(stdout);
-
     if (sig == SIGUSR1)
     {
         printf("0");
@@ -87,6 +84,9 @@ void print_bit(int sig)
         printf(" ");
     }
 
+    // im not sure why, but without flushing stdout here, the 0s and 1s just don't print
+    fflush(stdout);
+    
     // let p1 know p3 is done printing
     kill(pid1, SIGUSR1);
 }

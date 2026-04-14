@@ -175,6 +175,9 @@ void wait_for_signal(int sig)
         this needs to be reset before sending any bits because
         the acknowledgements that p2 and p3 are ready will increment
         this
+
+        without doing the ack_count < bit_count while loop in send_message(),
+        p1 would terminate p2 and p3 before printing all the bits.
     */
     ack_count++;
 }
