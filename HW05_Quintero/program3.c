@@ -16,7 +16,7 @@
 
     To run:
         make all
-        ./program1 & ./program2 & ./program3
+        ./program1 & ./program2 & ./program3 >> output.txt
         make clean
 */
 #include <stdio.h>
